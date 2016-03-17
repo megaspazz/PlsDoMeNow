@@ -18,7 +18,19 @@ namespace PlsDoMeNow.Models
             var userIdentity = await manager.CreateIdentityAsync(this, DefaultAuthenticationTypes.ApplicationCookie);
             // Add custom user claims here
             return userIdentity;
-        }
+		}
+
+		public static ApplicationUser GetCurrentUser(ApplicationDbContext db)
+		{
+			string id = System.Web.HttpContext.Current.User.Identity.GetUserId();
+			return db.Users.Find(id);
+		}
+
+		public static ApplicationUser GetCurrentUser()
+		{
+			ApplicationDbContext db = new ApplicationDbContext();
+			return GetCurrentUser(db);
+		}
     }
 
     public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
@@ -32,9 +44,9 @@ namespace PlsDoMeNow.Models
         {
         }
 
-        public static ApplicationDbContext Create()
-        {
-            return new ApplicationDbContext();
-        }
+		public static ApplicationDbContext Create()
+		{
+			return new ApplicationDbContext();
+		}
     }
 }

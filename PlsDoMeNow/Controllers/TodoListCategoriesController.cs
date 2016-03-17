@@ -48,6 +48,8 @@ namespace PlsDoMeNow.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Create([Bind(Include = "ID,Name")] TodoListCategory todoListCategory)
         {
+			todoListCategory.Owner = ApplicationUser.GetCurrentUser(db);
+			ModelState.Remove("Owner");
             if (ModelState.IsValid)
             {
                 db.TodoListCategories.Add(todoListCategory);
