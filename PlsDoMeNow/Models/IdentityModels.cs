@@ -20,9 +20,14 @@ namespace PlsDoMeNow.Models
             return userIdentity;
 		}
 
+		public static string GetCurrentUserID()
+		{
+			return System.Web.HttpContext.Current.User.Identity.GetUserId();
+		}
+
 		public static ApplicationUser GetCurrentUser(ApplicationDbContext db)
 		{
-			string id = System.Web.HttpContext.Current.User.Identity.GetUserId();
+			string id = GetCurrentUserID();
 			return db.Users.Find(id);
 		}
 

@@ -38,6 +38,7 @@ namespace PlsDoMeNow.Controllers
         // GET: TodoLists/Create
         public ActionResult Create()
         {
+			ViewBag.Categories = TodoListCategory.GetCurrentUserCategories(db);
             return View();
         }
 
@@ -46,8 +47,20 @@ namespace PlsDoMeNow.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create([Bind(Include = "ID,Name")] TodoList todoList)
+        public ActionResult Create([Bind(Include = "ID,Name,Category")] TodoList todoList)
         {
+			string userID = ApplicationUser.GetCurrentUserID();
+			TodoListCategory cat = db.TodoListCategories.Find(todoList.Category.ID);
+			if (cat == null || cat.Owner.Id != userID)
+			{
+				// TODO: Error message for invalid category
+				ViewBag.Categories = TodoListCategory.GetCurrentUserCategories(db);
+				return View(todoList);
+			}
+			todoList.Category = cat;
+			ModelState.Clear();
+			TryValidateModel(todoList);
+
             if (ModelState.IsValid)
             {
                 db.TodoLists.Add(todoList);
@@ -55,7 +68,9 @@ namespace PlsDoMeNow.Controllers
                 return RedirectToAction("Index");
             }
 
-            return View(todoList);
+			// TODO: Error message for failed validation
+			ViewBag.Categories = TodoListCategory.GetCurrentUserCategories(db);
+			return View(todoList);
         }
 
         // GET: TodoLists/Edit/5

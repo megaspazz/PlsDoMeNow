@@ -17,5 +17,22 @@ namespace PlsDoMeNow.Models
 
 		[Required]
 		public virtual TodoListCategory Category { get; set; }
+
+		public static TodoList[] GetCurrentUserLists()
+		{
+			ApplicationDbContext db = new ApplicationDbContext();
+			return GetCurrentUserLists(db);
+		}
+
+		public static TodoList[] GetCurrentUserLists(ApplicationDbContext db)
+		{
+			TodoListCategory[] cats = TodoListCategory.GetCurrentUserCategories(db);
+			if (cats == null)
+			{
+				return null;
+			}
+			HashSet<int> catIDs = new HashSet<int>(cats.Select(x => x.ID));
+			return db.TodoLists.Where(x => catIDs.Contains(x.Category.ID)).ToArray();
+		}
 	}
 }

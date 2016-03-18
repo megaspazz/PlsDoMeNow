@@ -37,7 +37,8 @@ namespace PlsDoMeNow.Controllers
 
         // GET: Todos/Create
         public ActionResult Create()
-        {
+		{
+			ViewBag.TodoLists = TodoList.GetCurrentUserLists();
             return View();
         }
 
@@ -46,8 +47,20 @@ namespace PlsDoMeNow.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create([Bind(Include = "ID,Name,Description,DueDate")] Todo todo)
-        {
+        public ActionResult Create([Bind(Include = "ID,Name,Description,DueDate,Importance,List")] Todo todo)
+		{
+			string userID = ApplicationUser.GetCurrentUserID();
+			TodoList list = db.TodoLists.Find(todo.List.ID);
+			if (list == null || list.Category.Owner.Id != userID)
+			{
+				// TODO: Error message for invalid list
+				ViewBag.TodoLists = TodoList.GetCurrentUserLists();
+				return View(todo);
+			}
+			todo.List = list;
+			ModelState.Clear();
+			TryValidateModel(todo);
+
             if (ModelState.IsValid)
             {
                 db.Todos.Add(todo);
@@ -55,6 +68,8 @@ namespace PlsDoMeNow.Controllers
                 return RedirectToAction("Index");
             }
 
+			// TODO: Error message for failed validation
+			ViewBag.TodoLists = TodoList.GetCurrentUserLists();
             return View(todo);
         }
 
@@ -78,7 +93,7 @@ namespace PlsDoMeNow.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit([Bind(Include = "ID,Name,Description,DueDate")] Todo todo)
+        public ActionResult Edit([Bind(Include = "ID,Name,Description,DueDate,Importance")] Todo todo)
         {
             if (ModelState.IsValid)
             {

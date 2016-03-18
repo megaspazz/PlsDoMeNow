@@ -57,6 +57,7 @@ namespace PlsDoMeNow.Controllers
                 return RedirectToAction("Index");
             }
 
+			// TODO: Error message for failed validation
             return View(todoListCategory);
         }
 

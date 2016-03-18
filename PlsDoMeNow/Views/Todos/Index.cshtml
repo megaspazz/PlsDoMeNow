@@ -21,6 +21,9 @@
         <th>
             @Html.DisplayNameFor(model => model.DueDate)
         </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Importance)
+        </th>
         <th></th>
     </tr>
 
@@ -34,6 +37,9 @@
         </td>
         <td>
             @Html.DisplayFor(modelItem => item.DueDate)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Importance)
         </td>
         <td>
             @Html.ActionLink("Edit", "Edit", new { id=item.ID }) |
