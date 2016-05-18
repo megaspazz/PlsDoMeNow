@@ -22,3 +22,42 @@ select,
 textarea {
     max-width: 280px;
 }
+
+.divCatName {
+    font-size: 18pt;
+    cursor: pointer;
+}
+
+.divListName {
+    font-size: 14pt;
+    cursor: pointer;
+}
+
+.divTodoName {
+    font-size: 12pt;
+    cursor: pointer;
+}
+
+.expander {
+    overflow: hidden;
+    transition: height 1s;
+}
+
+.divLists, .divTodos, .divProperties {
+    margin: 0 0 0 40px;
+    overflow: hidden;
+    transition: height 1s;
+}
+
+.divAddList {
+    color: blue;
+    cursor: pointer;
+}
+
+.divAddList:hover {
+    text-decoration: underline;
+}
+
+#divNewList {
+    display: none;
+}

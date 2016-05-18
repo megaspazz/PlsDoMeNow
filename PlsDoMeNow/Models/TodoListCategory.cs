@@ -4,6 +4,8 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Web;
 
+using Newtonsoft.Json;
+
 namespace PlsDoMeNow.Models
 {
 	public class TodoListCategory
@@ -13,9 +15,10 @@ namespace PlsDoMeNow.Models
 
 		[Required]
 		public string Name { get; set; }
-		public ICollection<TodoList> Lists { get; set; }
+		public virtual ICollection<TodoList> Lists { get; set; }
 
 		[Required]
+        [JsonIgnore]
 		public virtual ApplicationUser Owner { get; set; }
 
 		public static TodoListCategory[] GetCurrentUserCategories()

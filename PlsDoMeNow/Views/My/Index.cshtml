@@ -1,0 +1,244 @@
+﻿@model PlsDoMeNow.Models.JsonString
+
+@{
+    ViewBag.Title = "Index";
+}
+
+<h2>My Todo</h2>
+
+<div id="divContainer">
+</div>
+
+<div id="divNewList">
+    <input id="hidCatID" type="hidden" />
+    <div>
+        <strong>Name:</strong> <input id="txtListName" type="text" onkeypress="newListKeyPress(event);" />
+    </div>
+    <input id="btnSubmitList" type="button" value="New List" onclick="submitNewList();" />
+</div>
+
+<script>
+    var data = JSON.parse("@Html.Raw(HttpUtility.JavaScriptStringEncode(Model.Value))");
+    var lastDivAddList = null;
+
+    $(document).ready(function () {
+        var divContainer = document.getElementById("divContainer");
+        if (data) {
+            for (var i = 0; i < data.length; i++) {
+                var divCat = renderCategory(data[i]);
+                divCat.className = "divCat";
+                divContainer.appendChild(divCat);
+            }
+        }
+    });
+
+    function renderCategory(cat) {
+        var divCat = document.createElement("div");
+        divCat.id = generateCategoryID(cat.ID);
+
+        var divCatName = document.createElement("div");
+        divCatName.innerHTML = cat.Name;
+        divCatName.className = "divCatName";
+        divCat.appendChild(divCatName);
+
+        var divLists = document.createElement("div");
+        divLists.className = "divLists";
+        divLists.id = generateCategoryListsID(cat.ID);
+        if (cat.Lists) {
+            for (var i = 0; i < cat.Lists.length; i++) {
+                var divList = renderList(cat.Lists[i]);
+                divLists.appendChild(divList);
+            }
+        }
+        var divAddList = generateAddList(cat.ID);
+        divLists.appendChild(divAddList);
+        divCat.appendChild(divLists);
+
+        generateCollapser(divCatName, divLists);
+
+        return divCat;
+    }
+
+    function renderList(list) {
+        var divList = document.createElement("div");
+        divList.id = generateListID(list.ID);
+
+        var divListName = document.createElement("div");
+        divListName.innerHTML = list.Name;
+        divListName.className = "divListName";
+        divList.appendChild(divListName);
+
+        var divTodos = document.createElement("div");
+        divTodos.className = "divTodos";
+        divTodos.id = generateListTodosID(list.ID);
+        if (list.Todos) {
+            for (var i = 0; i < list.Todos.length; i++) {
+                var divTodo = renderTodo(list.Todos[i]);
+                divTodos.appendChild(divTodo);
+            }
+        }
+        divList.appendChild(divTodos);
+
+        generateCollapser(divListName, divTodos);
+
+        return divList;
+    }
+
+    function renderTodo(todo) {
+        var divTodo = document.createElement("div");
+        divTodo.id = generateTodoID(todo.ID);
+
+        var divTodoName = document.createElement("div");
+        divTodoName.innerHTML = todo.Name;
+        divTodoName.className = "divTodoName";
+        divTodo.appendChild(divTodoName);
+
+        var divProperties = document.createElement("div");
+        divProperties.className = "divProperties";
+        divProperties.id = generateTodoPropertiesID(todo.ID);
+
+        var divTodoDescription = document.createElement("div");
+        var divTodoImportance = document.createElement("div");
+        var divTodoDueDate = document.createElement("div");
+        divTodoDescription.innerHTML = todo.Description;
+        divTodoImportance.innerHTML = todo.Importance;
+        divTodoDueDate.innerHTML = todo.DueDate;
+
+        divProperties.appendChild(divTodoDescription);
+        divProperties.appendChild(divTodoImportance);
+        divProperties.appendChild(divTodoDueDate);
+
+        divTodo.appendChild(divProperties);
+
+        generateCollapser(divTodoName, divProperties);
+
+        return divTodo;
+    }
+
+    function generateCollapser(clickElt, collapseElt) {
+        clickElt.onclick = function () {
+            if (isCollapsed(collapseElt)) {
+                expand(collapseElt);
+            } else {
+                collapse(collapseElt);
+            }
+        }
+    }
+
+    function isHidden(elt) {
+        return elt.offsetParent === null;
+    }
+
+    function show(elt) {
+        elt.style.display = "inline";
+    }
+
+    function hide(elt) {
+        elt.style.display = "none";
+    }
+
+    function isCollapsed(elt) {
+        return elt.style.height === "0px";
+    }
+
+    function expand(elt) {
+        elt.style.height = "";
+    }
+
+    function collapse(elt) {
+        elt.style.height = 0;
+    }
+
+    function generateCategoryID(catID) {
+        return "cat_" + catID;
+    }
+
+    function generateCategoryListsID(catID) {
+        return "cat_lists_" + catID;
+    }
+
+    function generateCategoryAddListID(catID) {
+        return "cat_addlist_" + catID;
+    }
+
+    function generateListID(listID) {
+        return "list_" + listID;
+    }
+
+    function generateListTodosID(listID) {
+        return "list_todos_" + listID;
+    }
+
+    function generateTodoID(todoID) {
+        return "todo_" + todoID;
+    }
+
+    function generateTodoPropertiesID(todoID) {
+        return "todo_props_" + todoID;
+    }
+
+    function getDivLists(catID) {
+        var divListsID = generateCategoryListsID(catID);
+        return document.getElementById(divListsID);
+    }
+
+    function getDivAddList(catID) {
+        var divAddListID = generateCategoryAddListID(catID);
+        return document.getElementById(divAddListID);
+    }
+
+    function generateAddList(catID) {
+        var divAddList = document.createElement("div");
+        divAddList.innerHTML = "Add List";
+        divAddList.className = "divAddList";
+        divAddList.id = generateCategoryAddListID(catID);
+
+        divAddList.onclick = function () {
+            if (lastDivAddList) {
+                show(lastDivAddList);
+            }
+            hide(divAddList);
+            lastDivAddList = divAddList;
+
+            var divLists = getDivLists(catID);
+            var divNewList = document.getElementById("divNewList");
+            var hidCatID = document.getElementById("hidCatID");
+            var txtListName = document.getElementById("txtListName");
+            txtListName.value = "";
+            hidCatID.value = catID;
+            divLists.appendChild(divNewList);
+            show(divNewList);
+        };
+        return divAddList;
+    }
+
+    function newListKeyPress(e) {
+        var code = e.keyCode || e.which;
+        if (code == 13) {
+            submitNewList();
+        }
+    }
+
+    function submitNewList() {
+        var txtListName = document.getElementById("txtListName");
+        var hidCatID = document.getElementById("hidCatID");
+        var listName = txtListName.value;
+        var catID = hidCatID.value;
+        var url = "@Url.Action("NewList", "TodoLists")";
+        var args = {
+            categoryID: catID,
+            name: listName
+        };
+        var divAddList = getDivAddList(catID);
+        show(divAddList);
+        $.getJSON(url, args, function (data) {
+            var divLists = getDivLists(catID);
+            var divAddList = getDivAddList(catID);
+            var divList = renderList(data);
+            divLists.insertBefore(divList, divAddList);
+
+            var divNewList = document.getElementById("divNewList");
+            hide(divNewList);
+        });
+    }
+</script>
