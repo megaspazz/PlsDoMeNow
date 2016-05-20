@@ -134,6 +134,8 @@ namespace PlsDoMeNow.Controllers
         // GET: TodoLists/NewList
         public string NewList(int categoryID, string name)
         {
+            //System.Threading.Thread.Sleep(4000);
+
             string userID = ApplicationUser.GetCurrentUserID();
             TodoListCategory cat = db.TodoListCategories.Find(categoryID);
             if (cat == null || cat.Owner.Id != userID)

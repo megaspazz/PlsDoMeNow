@@ -124,6 +124,8 @@ namespace PlsDoMeNow.Controllers
         // GET: TodoListCategories/NewCat
         public string NewCat(string name)
         {
+            //System.Threading.Thread.Sleep(4000);
+
             TodoListCategory cat = new TodoListCategory()
             {
                 Name = name,
