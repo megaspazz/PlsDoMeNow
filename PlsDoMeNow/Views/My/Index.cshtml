@@ -10,15 +10,17 @@
 </div>
 
 <div id="divNewList">
-    <input id="hidCatID" type="hidden" />
     <div>
         <strong>Name:</strong> <input id="txtListName" type="text" onkeypress="newListKeyPress(event);" />
     </div>
     <input id="btnSubmitList" type="button" value="New List" onclick="submitNewList();" />
+    <input id="btnCancelList" type="button" value="Cancel" onclick="cancelNewList();" />
 </div>
 
 <script>
     var data = JSON.parse("@Html.Raw(HttpUtility.JavaScriptStringEncode(Model.Value))");
+
+    var currCatID = null;
     var lastDivAddList = null;
 
     $(document).ready(function () {
@@ -202,10 +204,9 @@
 
             var divLists = getDivLists(catID);
             var divNewList = document.getElementById("divNewList");
-            var hidCatID = document.getElementById("hidCatID");
             var txtListName = document.getElementById("txtListName");
             txtListName.value = "";
-            hidCatID.value = catID;
+            currCatID = catID;
             divLists.appendChild(divNewList);
             show(divNewList);
         };
@@ -214,31 +215,44 @@
 
     function newListKeyPress(e) {
         var code = e.keyCode || e.which;
-        if (code == 13) {
-            submitNewList();
+        switch (code) {
+            case 13:
+                submitNewList();
+                break;
+            case 27:
+                cancelNewList();
+                break;
         }
     }
 
     function submitNewList() {
         var txtListName = document.getElementById("txtListName");
-        var hidCatID = document.getElementById("hidCatID");
         var listName = txtListName.value;
-        var catID = hidCatID.value;
+        var catID = currCatID;
         var url = "@Url.Action("NewList", "TodoLists")";
         var args = {
             categoryID: catID,
             name: listName
         };
-        var divAddList = getDivAddList(catID);
-        show(divAddList);
         $.getJSON(url, args, function (data) {
             var divLists = getDivLists(catID);
             var divAddList = getDivAddList(catID);
             var divList = renderList(data);
             divLists.insertBefore(divList, divAddList);
 
+            var divAddList = getDivAddList(catID);
+            show(divAddList);
+
             var divNewList = document.getElementById("divNewList");
             hide(divNewList);
         });
+    }
+
+    function cancelNewList() {
+        var divAddList = getDivAddList(currCatID);
+        show(divAddList);
+
+        var divNewList = document.getElementById("divNewList");
+        hide(divNewList);
     }
 </script>

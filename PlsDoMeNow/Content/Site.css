@@ -26,18 +26,22 @@ textarea {
 .divCatName {
     font-size: 18pt;
     cursor: pointer;
+    display: inline-block;
 }
 
 .divListName {
     font-size: 14pt;
     cursor: pointer;
+    display: inline-block;
 }
 
 .divTodoName {
     font-size: 12pt;
     cursor: pointer;
+    display: inline-block;
 }
 
+/* not currently used */
 .expander {
     overflow: hidden;
     transition: height 1s;
