@@ -130,7 +130,14 @@
         var divTodoName = document.createElement("div");
         divTodoName.innerHTML = todo.Name;
         divTodoName.className = "divTodoName";
-        divTodo.appendChild(divTodoName);
+
+        var divTodoDone = generateTodoDone(todo.ID);
+
+        var divTodoHeader = document.createElement("div");
+        divTodoHeader.appendChild(divTodoName);
+        divTodoHeader.appendChild(divTodoDone);
+
+        divTodo.appendChild(divTodoHeader);
 
         var divProperties = document.createElement("div");
         divProperties.className = "divProperties";
@@ -139,6 +146,7 @@
         var divTodoDescription = document.createElement("div");
         var divTodoImportance = document.createElement("div");
         var divTodoDueDate = document.createElement("div");
+
         divTodoDescription.innerHTML = todo.Description;
         divTodoImportance.innerHTML = todo.Importance;
         divTodoDueDate.innerHTML = todo.DueDate;
@@ -220,6 +228,10 @@
         return "todo_props_" + todoID;
     }
 
+    function generateTodoDoneID(todoID) {
+        return "todo_done_" + todoID;
+    }
+
     function getDivLists(catID) {
         var divListsID = generateCategoryListsID(catID);
         return document.getElementById(divListsID);
@@ -240,6 +252,11 @@
         return document.getElementById(divAddTodoID);
     }
 
+    function getDivTodo(todoID) {
+        var divTodoID = generateTodoID(todoID);
+        return document.getElementById(divTodoID);
+    }
+
     function addCategoryClick() {
         var divAddCat = document.getElementById("divAddCat");
         hide(divAddCat);
@@ -248,6 +265,8 @@
         var txtCatName = document.getElementById("txtCatName");
         txtCatName.value = "";
         show(divNewCat);
+
+        txtCatName.focus();
     }
 
     function newCatKeyPress(e) {
@@ -310,10 +329,14 @@
             var divNewList = document.getElementById("divNewList");
             var txtListName = document.getElementById("txtListName");
             txtListName.value = "";
+
             currCatID = catID;
             divLists.appendChild(divNewList);
+
             show(divNewList);
+            txtListName.focus();
         };
+
         return divAddList;
     }
 
@@ -361,6 +384,32 @@
         hide(divNewList);
     }
 
+    function generateTodoDone(todoID) {
+        var divTodoDone = document.createElement("div");
+        divTodoDone.innerHTML = "Done";
+        divTodoDone.className = "divTodoDone";
+        divTodoDone.id = generateTodoDoneID(todoID);
+
+        divTodoDone.onclick = function () {
+            hide(divTodoDone);
+
+            var url = "@Url.Action("Done", "Todos")";
+            var args = {
+                id: todoID
+            };
+            $.getJSON(url, args).done(function (data) {
+                // server successfully deleted/done the todo
+                var divTodo = getDivTodo(todoID);
+                divTodo.parentElement.removeChild(divTodo);
+            }).fail(function () {
+                show(divTodoDone);
+                alert("ERROR:  Unable to mark todo as done.  If this keeps happening, you could try refreshing the page.");
+            });
+        };
+
+        return divTodoDone;
+    }
+
     function generateAddTodo(listID) {
         var divAddTodo = document.createElement("div");
         divAddTodo.innerHTML = "Add Todo";
@@ -388,8 +437,11 @@
 
             currListID = listID;
             divTodos.appendChild(divNewTodo);
+
             show(divNewTodo);
+            txtTodoName.focus();
         };
+
         return divAddTodo;
     }
 

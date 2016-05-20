@@ -133,7 +133,7 @@ namespace PlsDoMeNow.Controllers
             return RedirectToAction("Index");
         }
 
-        // GET: TodoLists/NewList
+        // GET: Todos/NewList
         public string NewTodo(int listID, string name, string description, DateTime? dueDate, double? importance)
         {
             //System.Threading.Thread.Sleep(4000);
@@ -165,6 +165,23 @@ namespace PlsDoMeNow.Controllers
             }
 
             return null;    // or throw exception
+        }
+
+        // GET: Todos/Done
+        public int? Done(int id)
+        {
+            //System.Threading.Thread.Sleep(4000);
+
+            string userID = ApplicationUser.GetCurrentUserID();
+            Todo todo = db.Todos.Find(id);
+            if (todo == null || todo.List.Category == null || todo.List.Category.Owner == null || todo.List.Category.Owner.Id != userID)
+            {
+                return null;
+            }
+
+            db.Todos.Remove(todo);
+            db.SaveChanges();
+            return id;
         }
 
         protected override void Dispose(bool disposing)

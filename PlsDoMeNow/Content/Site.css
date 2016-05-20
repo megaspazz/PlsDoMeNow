@@ -41,6 +41,10 @@ textarea {
     display: inline-block;
 }
 
+.divTodoDone {
+    margin-left: 12px;
+}
+
 /* not currently used */
 .expander {
     overflow: hidden;
@@ -53,13 +57,13 @@ textarea {
     transition: height 1s;
 }
 
-#divAddCat, .divAddList, .divAddTodo {
+#divAddCat, .divAddList, .divAddTodo, .divTodoDone {
     color: blue;
     cursor: pointer;
     display: inline-block;
 }
 
-#divAddCat:hover, .divAddList:hover, .divAddTodo:hover {
+#divAddCat:hover, .divAddList:hover, .divAddTodo:hover, .spanTodoDone:hover {
     text-decoration: underline;
 }
 
