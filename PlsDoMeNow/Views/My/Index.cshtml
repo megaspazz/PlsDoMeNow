@@ -7,29 +7,68 @@
 <h2>My Todo</h2>
 
 <div id="divContainer">
+    <div id="divAddCat" onclick="addCategoryClick();">Add Category</div>
+    <div id="divNewCat">
+        <div>
+            <strong>Name:</strong>
+            <input id="txtCatName" type="text" onkeypress="newCatKeyPress(event);" />
+        </div>
+        <input id="btnSubmitCat" type="button" value="New Category" onclick="submitNewCat();" />
+        <input id="btnCancelCat" type="button" value="Cancel" onclick="cancelNewCat();" />
+    </div>
 </div>
 
 <div id="divNewList">
     <div>
-        <strong>Name:</strong> <input id="txtListName" type="text" onkeypress="newListKeyPress(event);" />
+        <strong>Name:</strong>
+        <input id="txtListName" type="text" onkeypress="newListKeyPress(event);" />
     </div>
     <input id="btnSubmitList" type="button" value="New List" onclick="submitNewList();" />
     <input id="btnCancelList" type="button" value="Cancel" onclick="cancelNewList();" />
 </div>
 
+<div id="divNewTodo">
+    <div>
+        <strong>Name:</strong>
+        <input id="txtTodoName" type="text" onkeypress="newTodoKeyPress(event);" />
+    </div>
+    <div>
+        <strong>Description:</strong>
+        <input id="txtTodoDesc" type="text" onkeypress="newTodoKeyPress(event);" />
+    </div>
+    <div>
+        <strong>Duedate:</strong>
+        <input id="txtTodoDue" type="datetime-local" step="1" onkeypress="newTodoKeyPress(event);" />
+    </div>
+    <div>
+        <strong>Importance:</strong>
+        <input id="numTodoImp" type="number" step="any" onkeypress="newTodoKeyPress(event);" />
+    </div>
+    <input id="btnSubmitTodo" type="button" value="New Todo" onclick="submitNewTodo();" />
+    <input id="btnCancelTodo" type="button" value="Cancel" onclick="cancelNewTodo();" />
+</div>
+
 <script>
     var data = JSON.parse("@Html.Raw(HttpUtility.JavaScriptStringEncode(Model.Value))");
 
+    var lockNewCat = false;
+
     var currCatID = null;
     var lastDivAddList = null;
+    var lockNewList = false;
+
+    var currListID = null;
+    var lastDivAddTodo = null;
+    var lockNewTodo = false;
 
     $(document).ready(function () {
+        var divAddCat = document.getElementById("divAddCat");
         var divContainer = document.getElementById("divContainer");
         if (data) {
             for (var i = 0; i < data.length; i++) {
                 var divCat = renderCategory(data[i]);
                 divCat.className = "divCat";
-                divContainer.appendChild(divCat);
+                divContainer.insertBefore(divCat, divAddCat);
             }
         }
     });
@@ -79,6 +118,8 @@
                 divTodos.appendChild(divTodo);
             }
         }
+        var divAddTodo = generateAddTodo(list.ID);
+        divTodos.appendChild(divAddTodo);
         divList.appendChild(divTodos);
 
         generateCollapser(divListName, divTodos);
@@ -171,6 +212,10 @@
         return "list_todos_" + listID;
     }
 
+    function generateListAddTodoID(listID) {
+        return "list_addtodo_" + listID;
+    }
+
     function generateTodoID(todoID) {
         return "todo_" + todoID;
     }
@@ -187,6 +232,77 @@
     function getDivAddList(catID) {
         var divAddListID = generateCategoryAddListID(catID);
         return document.getElementById(divAddListID);
+    }
+
+    function getDivTodos(listID) {
+        var divTodosID = generateListTodosID(listID);
+        return document.getElementById(divTodosID);
+    }
+
+    function getDivAddTodo(listID) {
+        var divAddTodoID = generateListAddTodoID(listID);
+        return document.getElementById(divAddTodoID);
+    }
+
+    function addCategoryClick() {
+        var divAddCat = document.getElementById("divAddCat");
+        hide(divAddCat);
+
+        var divNewCat = document.getElementById("divNewCat");
+        var txtCatName = document.getElementById("txtCatName");
+        txtCatName.value = "";
+        show(divNewCat);
+    }
+
+    function newCatKeyPress(e) {
+        var code = e.keyCode || e.which;
+        switch (code) {
+            case 13:
+                submitNewCat();
+                break;
+            case 27:
+                cancelNewCat();
+                break;
+        }
+    }
+
+    function submitNewCat() {
+        if (lockNewCat) {
+            alert("Please wait until the current category is done processing.  If you've been waiting a long time, you could try refreshing the page.");
+            return;
+        }
+
+        var txtCatName = document.getElementById("txtCatName");
+        var catName = txtCatName.value;
+
+        var url = "@Url.Action("NewCat", "TodoListCategories")";
+        var args = {
+            name: catName
+        };
+        lockNewCat = true;
+        $.getJSON(url, args).done(function (data) {
+            var divContainer = document.getElementById("divContainer");
+            var divAddCat = document.getElementById("divAddCat");
+            var divCat = renderCategory(data);
+            divContainer.insertBefore(divCat, divAddCat);
+
+            show(divAddCat);
+
+            var divNewCat = document.getElementById("divNewCat");
+            hide(divNewCat);
+        }).fail(function() {
+            alert("ERROR:  Unable to add new category.  Perhaps you didn't put in a name?");
+        }).always(function() {
+            lockNewCat = false;
+        });
+    }
+
+    function cancelNewCat() {
+        var divAddCat = document.getElementById("divAddCat");
+        show(divAddCat);
+
+        var divNewCat = document.getElementById("divNewCat");
+        hide(divNewCat);
     }
 
     function generateAddList(catID) {
@@ -226,6 +342,11 @@
     }
 
     function submitNewList() {
+        if (lockNewList) {
+            alert("Please wait until the current list is done processing.  If you've been waiting a long time, you could try refreshing the page.");
+            return;
+        }
+
         var txtListName = document.getElementById("txtListName");
         var listName = txtListName.value;
         var catID = currCatID;
@@ -234,17 +355,21 @@
             categoryID: catID,
             name: listName
         };
-        $.getJSON(url, args, function (data) {
+        lockNewList = true;
+        $.getJSON(url, args).done(function (data) {
             var divLists = getDivLists(catID);
             var divAddList = getDivAddList(catID);
             var divList = renderList(data);
             divLists.insertBefore(divList, divAddList);
 
-            var divAddList = getDivAddList(catID);
             show(divAddList);
 
             var divNewList = document.getElementById("divNewList");
             hide(divNewList);
+        }).fail(function() {
+            alert("ERROR:  Unable to add new list.  Perhaps you didn't put in a name?");
+        }).always(function() {
+            lockNewList = false;
         });
     }
 
@@ -254,5 +379,101 @@
 
         var divNewList = document.getElementById("divNewList");
         hide(divNewList);
+    }
+
+    function generateAddTodo(listID) {
+        var divAddTodo = document.createElement("div");
+        divAddTodo.innerHTML = "Add Todo";
+        divAddTodo.className = "divAddTodo";
+        divAddTodo.id = generateListAddTodoID(listID);
+
+        divAddTodo.onclick = function () {
+            if (lastDivAddTodo) {
+                show(lastDivAddTodo);
+            }
+            hide(divAddTodo);
+            lastDivAddTodo = divAddTodo;
+
+            var divTodos = getDivTodos(listID);
+            var divNewTodo = document.getElementById("divNewTodo");
+            var txtTodoName = document.getElementById("txtTodoName");
+            var txtTodoDesc = document.getElementById("txtTodoDesc");
+            var txtTodoDue = document.getElementById("txtTodoDue");
+            var numTodoImp = document.getElementById("numTodoImp");
+
+            txtTodoName.value = "";
+            txtTodoDesc.value = "";
+            txtTodoDue.value = "";
+            numTodoImp.value = "";
+
+            currListID = listID;
+            divTodos.appendChild(divNewTodo);
+            show(divNewTodo);
+        };
+        return divAddTodo;
+    }
+
+    function newTodoKeyPress(e) {
+        var code = e.keyCode || e.which;
+        switch (code) {
+            case 13:
+                submitNewTodo();
+                break;
+            case 27:
+                cancelNewTodo();
+                break;
+        }
+    }
+
+    function submitNewTodo() {
+        if (lockNewTodo) {
+            alert("Please wait until the current todo is done processing.  If you've been waiting a long time, you could try refreshing the page.");
+            return;
+        }
+
+        var txtTodoName = document.getElementById("txtTodoName");
+        var txtTodoDesc = document.getElementById("txtTodoDesc");
+        var txtTodoDue = document.getElementById("txtTodoDue");
+        var numTodoImp = document.getElementById("numTodoImp");
+
+        var listID = currListID;
+        var todoName = txtTodoName.value;
+        var todoDesc = txtTodoDesc.value;
+        var todoDue = txtTodoDue.value;
+        var todoImp = numTodoImp.value;
+
+        var url = "@Url.Action("NewTodo", "Todos")";
+        var args = {
+            listID: currListID,
+            name: todoName,
+            description: todoDesc,
+            dueDate: todoDue,
+            importance: todoImp
+        };
+        lockNewTodo = true;
+        $.getJSON(url, args).done(function (data) {
+            var listID = data.ListID;
+            var divTodos = getDivTodos(listID);
+            var divAddTodo = getDivAddTodo(listID);
+            var divTodo = renderTodo(data);
+            divTodos.insertBefore(divTodo, divAddTodo);
+
+            show(divAddTodo);
+
+            var divNewTodo = document.getElementById("divNewTodo");
+            hide(divNewTodo);
+        }).fail(function() {
+            alert("ERROR:  Unable to add new todo.  Perhaps you didn't put in a name?");
+        }).always(function() {
+            lockNewTodo = false;
+        });
+    }
+
+    function cancelNewTodo() {
+        var divAddTodo = getDivAddTodo(currListID);
+        show(divAddTodo);
+
+        var divNewTodo = document.getElementById("divNewTodo");
+        hide(divNewTodo);
     }
 </script>

@@ -53,15 +53,15 @@ textarea {
     transition: height 1s;
 }
 
-.divAddList {
+#divAddCat, .divAddList, .divAddTodo {
     color: blue;
     cursor: pointer;
 }
 
-.divAddList:hover {
+#divAddCat:hover, .divAddList:hover, .divAddTodo:hover {
     text-decoration: underline;
 }
 
-#divNewList {
+#divNewCat, #divNewList, #divNewTodo {
     display: none;
 }

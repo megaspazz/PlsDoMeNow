@@ -6,7 +6,10 @@ using System.Linq;
 using System.Net;
 using System.Web;
 using System.Web.Mvc;
+
 using PlsDoMeNow.Models;
+
+using Newtonsoft.Json;
 
 namespace PlsDoMeNow.Controllers
 {
@@ -128,6 +131,38 @@ namespace PlsDoMeNow.Controllers
             db.Todos.Remove(todo);
             db.SaveChanges();
             return RedirectToAction("Index");
+        }
+
+        // GET: TodoLists/NewList
+        public string NewTodo(int listID, string name, string description, DateTime? dueDate, double? importance)
+        {
+            string userID = ApplicationUser.GetCurrentUserID();
+            TodoList list = db.TodoLists.Find(listID);
+            if (list == null || list.Category.Owner.Id != userID)
+            {
+                return null;    // or throw exception
+            }
+
+            Todo todo = new Todo()
+            {
+                List = list,
+                Name = name,
+                Description = description,
+                DueDate = dueDate,
+                Importance = importance
+            };
+            
+            ModelState.Clear();
+            TryValidateModel(todo);
+
+            if (ModelState.IsValid)
+            {
+                db.Todos.Add(todo);
+                db.SaveChanges();
+                return JsonConvert.SerializeObject(todo);
+            }
+
+            return null;    // or throw exception
         }
 
         protected override void Dispose(bool disposing)
